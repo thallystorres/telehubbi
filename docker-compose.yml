@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgres:16-trixie
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?defina no .env}
+      POSTGRES_DB: ${POSTGRES_DB:?defina no .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina no .env}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -h 127.0.0.1 -U ${POSTGRES_USER} -d ${POSTGRES_DB}",
+        ]
+      start_period: 30s
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:?defina no .env}:5432"
+volumes:
+  postgres_data:
