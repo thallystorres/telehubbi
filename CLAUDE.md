@@ -15,7 +15,7 @@ Lacunas a cobrir:
 - WebSocket.
 - Dados de séries temporais.
 - API de ingestão de telemetria.
-- MQTT (extra).
+- MQTT: cortado da implementação; fica só como tema de discussão.
 
 **Mínimo aceitável:** API recebendo dados + tela React mostrando valores ao vivo via WebSocket.
 
@@ -138,7 +138,7 @@ Todos devem ser explicados quando aparecerem no código, sempre com o paralelo D
   - WebSocket testado com o `TestClient` do FastAPI.
   - Os testes usam um banco **Postgres** de teste, não SQLite, porque usamos `date_bin` e tipos do Postgres.
 - **Frontend:** React + Vite, em **JavaScript puro, sem TypeScript** (decisão consciente: aprender React sem ruído de tipos). Gráficos com **Recharts**, que é declarativo e ajuda a fixar o modelo de componentes.
-- **Infra:** Docker Compose com `db`, `api` e `front` (e `mosquitto` no extra); GitHub Actions rodando o pytest.
+- **Infra:** Docker Compose com `db`, `api` e `front`; GitHub Actions rodando o pytest.
 - **Simulador:** script Python com `httpx`.
 
 ## Modelagem
@@ -317,24 +317,21 @@ Os nomes de domínio ficam em português (`leituras`, `falhas`, `dispositivos`),
 
 ## Fases
 
-Ritmo de ~2h por noite durante a semana e mais tempo no fim de semana.
+Replanejado em 23/10: a fase 1 atrasou, então o ritmo passa a ser concentrado no fim de semana. Thallys continua escrevendo as peças dele em todas as fases; o ritmo não muda isso.
 
-| Fase | Quando         | Conteúdo                                                                                            | Marco                                 |
-| ---- | -------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| 1    | Ter 20         | Compose só com o `db`, venv, `config`/`db`/`models`/`schemas`, `auth`, seed, `POST /telemetria`     | POST funcionando pelo `/docs`         |
-| 2    | Qua 21         | `GET /telemetria` (cru + agregado), `/falhas`, `/dispositivos`, pytest (auth, validação, agregação) | Testes verdes                         |
-| 3    | Qui 22         | `ConnectionManager` + `/ws/telemetria` + simulador completo                                         | `websocat` recebendo leituras ao vivo |
-| 4    | Sex 23         | React camadas 1–2: componentes, props, `useState` com dados falsos                                  | Cards atualizando com dados fake      |
-| 5    | Sáb 24         | React camada 3: WS real, gráfico, alertas                                                           | **Mínimo aceitável**                  |
-| 6    | Dom 25         | Compose completo (api, db, front), CI, README com diagrama e decisões                               | Projeto apresentável                  |
-| 7    | Dom 25 (extra) | MQTT, só se a fase 5 fechou até sábado à tarde                                                      | —                                     |
-| —    | Seg–Ter        | Buffer e ensaio da explicação                                                                       | —                                     |
+| Fase | Quando           | Conteúdo                                                                                            | Marco                                 |
+| ---- | ---------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| 1    | Sex 23 (noite)   | Compose só com o `db`, venv, `config`/`db`/`models`/`schemas`, `auth`, seed, `POST /telemetria`     | POST funcionando pelo `/docs`         |
+| 2    | Sáb 24 (manhã)   | `GET /telemetria` (cru + agregado), `/falhas`, `/dispositivos`, pytest (auth, validação, agregação) | Testes verdes                         |
+| 3    | Sáb 24 (tarde)   | `ConnectionManager` + `/ws/telemetria` + simulador completo                                         | `websocat` recebendo leituras ao vivo |
+| 4    | Dom 25 (manhã)   | React camadas 1–2: componentes, props, `useState` com dados falsos                                  | Cards atualizando com dados fake      |
+| 5    | Dom 25 (tarde)   | React camada 3: WS real, gráfico, alertas                                                           | **Mínimo aceitável**                  |
+| 6    | Seg 26           | Compose completo (api, db, front), CI, README com diagrama e decisões                               | Projeto apresentável                  |
+| —    | Ter 27 em diante | Buffer e ensaio da explicação (se a entrevista não for no dia 28, o buffer se estende até ela)      | —                                     |
 
-**Extra MQTT:** Mosquitto no compose; o simulador ganha `--modo mqtt`; a API assina o tópico `veiculos/{id}/telemetria` no lifespan (`aiomqtt`). As duas portas de entrada, HTTP e MQTT, chamam **o mesmo serviço de ingestão**.
+**MQTT e TimescaleDB foram cortados** (decisão de 23/10). Não implementar. Na entrevista, aparecem só como discussão e próximos passos.
 
-**Extra opcional:** trocar a imagem por `timescale/timescaledb` e transformar `leituras` em hypertable.
-
-**Ordem de corte se faltar tempo:** TimescaleDB → MQTT → gráfico → CI.
+**Ordem de corte se faltar tempo:** gráfico → CI.
 
 ## Pontos para a entrevista (manter atualizado)
 
