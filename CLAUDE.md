@@ -54,13 +54,13 @@ Lacunas a cobrir:
 - Faça **3 perguntas de checagem** sobre o funcionamento do FastAPI (não sobre o domínio). Espere minhas respostas e corrija o que eu errar.
 - Inclua o bloco "Como explicar na entrevista".
 
-### Peças que eu escrevo
+### Quem escreve o código
 
-Em cada fase do backend, deixe **uma peça pequena para eu implementar**. Dê o enunciado e dicas, não a solução, e revise depois. Se a fase estiver estourando o tempo, avise e escreva você mesmo, explicando.
+**Decisão de 25/10:** eu escrevo **todo** o código com as minhas mãos, como fiz no `schemas.py`. Claude não escreve arquivos do projeto: para cada arquivo, segue o ritual (responsabilidade, equivalente em Django/DRF, lugar no ciclo da requisição), dá o enunciado, as dicas e um comando para verificar, e revisa depois.
 
-- Fase 1: o schema `LeituraOut` e o validador do código OBD-II.
-- Fase 2: o `GET /falhas` (espelhando o `GET /telemetria`) e dois testes de validação.
-- Fase 3: o teste do WebSocket com o `TestClient`.
+- Guie com perguntas e exemplos de **outro** domínio, não com a solução.
+- Se eu pedir a solução explicitamente, mostre e peça que eu mesmo digite.
+- Se o tempo apertar, avise e proponha cortes ou mudanças de ordem; não escreva no meu lugar.
 
 ### Conceitos por fase
 
@@ -317,7 +317,7 @@ Os nomes de domínio ficam em português (`leituras`, `falhas`, `dispositivos`),
 
 ## Fases
 
-Replanejado em 23/10: a fase 1 atrasou, então o ritmo passa a ser concentrado no fim de semana. Thallys continua escrevendo as peças dele em todas as fases; o ritmo não muda isso.
+Replanejado em 23/10: a fase 1 atrasou, então o ritmo passa a ser concentrado no fim de semana. Desde 25/10, Thallys escreve todo o código (ver "Quem escreve o código"); o ritmo não muda isso.
 
 | Fase | Quando           | Conteúdo                                                                                            | Marco                                 |
 | ---- | ---------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------- |
