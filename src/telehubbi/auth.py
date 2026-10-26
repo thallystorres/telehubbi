@@ -16,6 +16,11 @@ ERRO_401 = HTTPException(
 esquema_bearer = HTTPBearer(auto_error=False)
 
 
+def calcular_hash_token(token: str) -> str:
+    byte_token = token.encode()
+    return hashlib.sha256(byte_token).hexdigest()
+
+
 async def autenticar_dispositivo(
     credenciais: Annotated[
         HTTPAuthorizationCredentials | None, Depends(esquema_bearer)
@@ -24,7 +29,7 @@ async def autenticar_dispositivo(
 ) -> Dispositivo:
     if credenciais is None:
         raise ERRO_401
-    token_hash = hashlib.sha256(credenciais.credentials.encode()).hexdigest()
+    token_hash = calcular_hash_token(credenciais.credentials)
     consulta = select(Dispositivo).where(Dispositivo.token_hash == token_hash)
     dispositivo = await sessao.scalar(consulta)
     if dispositivo is None:
