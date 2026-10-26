@@ -1,4 +1,5 @@
 import hashlib
+import secrets
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
@@ -14,6 +15,11 @@ ERRO_401 = HTTPException(
     headers={"WWW-Authenticate": "Bearer"},
 )
 esquema_bearer = HTTPBearer(auto_error=False)
+
+
+def gerar_token() -> tuple[str, str]:
+    token = secrets.token_urlsafe(32)
+    return token, calcular_hash_token(token)
 
 
 def calcular_hash_token(token: str) -> str:
