@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from telehubbi.db import Base, engine
-from telehubbi.routers import telemetria
+from telehubbi.routers import telemetria, ws
 
 
 @asynccontextmanager
@@ -16,4 +16,5 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
 
 
 app = FastAPI(title="Telehubbi: telemetria veicular", lifespan=lifespan)
+app.include_router(ws.router)
 app.include_router(telemetria.router)
