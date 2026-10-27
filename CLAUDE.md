@@ -317,17 +317,21 @@ Os nomes de domínio ficam em português (`leituras`, `falhas`, `dispositivos`),
 
 ## Fases
 
-Replanejado em 23/10: a fase 1 atrasou, então o ritmo passa a ser concentrado no fim de semana. Desde 25/10, Thallys escreve todo o código (ver "Quem escreve o código"); o ritmo não muda isso.
+Desde 25/10, Thallys escreve todo o código (ver "Quem escreve o código").
 
-| Fase | Quando           | Conteúdo                                                                                            | Marco                                 |
-| ---- | ---------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| 1    | Sex 23 (noite)   | Compose só com o `db`, venv, `config`/`db`/`models`/`schemas`, `auth`, seed, `POST /telemetria`     | POST funcionando pelo `/docs`         |
-| 2    | Sáb 24 (manhã)   | `GET /telemetria` (cru + agregado), `/falhas`, `/dispositivos`, pytest (auth, validação, agregação) | Testes verdes                         |
-| 3    | Sáb 24 (tarde)   | `ConnectionManager` + `/ws/telemetria` + simulador completo                                         | `websocat` recebendo leituras ao vivo |
-| 4    | Dom 25 (manhã)   | React camadas 1–2: componentes, props, `useState` com dados falsos                                  | Cards atualizando com dados fake      |
-| 5    | Dom 25 (tarde)   | React camada 3: WS real, gráfico, alertas                                                           | **Mínimo aceitável**                  |
-| 6    | Seg 26           | Compose completo (api, db, front), CI, README com diagrama e decisões                               | Projeto apresentável                  |
-| —    | Ter 27 em diante | Buffer e ensaio da explicação (se a entrevista não for no dia 28, o buffer se estende até ela)      | —                                     |
+**Replanejado em 26/10:** a fase 1 terminou em 26/10 e a data da entrevista ainda não é conhecida, então o plano assume o pior caso (quarta, 28). A ordem passa a priorizar o mínimo aceitável: **1 → 3 → 4 → 5 → 2 → 6**.
+
+| Ordem | Fase | Conteúdo                                                                                            | Marco                                 |
+| ----- | ---- | --------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| ✅    | 1    | Compose só com o `db`, venv, `config`/`db`/`models`/`schemas`, `auth`, seed, `POST /telemetria`     | POST funcionando pelo `/docs`         |
+| 1º    | 3    | `ConnectionManager` + `/ws/telemetria` + simulador **mínimo** (1 carro, variação simples, 1 leitura/s) | `websocat` recebendo leituras ao vivo |
+| 2º    | 4    | React camadas 1–2: componentes, props, `useState` com dados falsos                                  | Cards atualizando com dados fake      |
+| 3º    | 5    | React camada 3: WS real, gráfico, alertas (só os que chegam pelo WS)                                | **Mínimo aceitável**                  |
+| 4º    | 2    | `GET /telemetria` (cru + agregado), `/falhas`, `/dispositivos`, pytest; carga inicial dos alertas no front | Testes verdes                  |
+| 5º    | 6    | Compose completo (api, db, front), CI, README com diagrama e decisões                               | Projeto apresentável                  |
+| —     | —    | Buffer e ensaio da explicação até a entrevista                                                      | —                                     |
+
+O simulador completo (random walk, `--devices`, `--backfill-horas`) entra junto com a fase 2, porque o backfill só serve para os GETs.
 
 **MQTT e TimescaleDB foram cortados** (decisão de 23/10). Não implementar. Na entrevista, aparecem só como discussão e próximos passos.
 
