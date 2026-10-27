@@ -1,10 +1,13 @@
 import asyncio
+import json
 
 from fastapi import WebSocket
 
+TIMEOUT_ENVIO_S = 2
+
 
 class ConnectionManager:
-    def __init__(self):
+    def __init__(self) -> None:
         self.conexoes: set[WebSocket] = set()
 
     async def conectar(self, websocket: WebSocket) -> None:
@@ -15,9 +18,15 @@ class ConnectionManager:
         self.conexoes.discard(websocket)
 
     async def broadcast(self, mensagem: dict) -> None:
+        mensagem_json = json.dumps(mensagem)
         conexoes = list(self.conexoes)
         respostas = await asyncio.gather(
-            *(conexao.send_json(mensagem) for conexao in conexoes),
+            *(
+                asyncio.wait_for(
+                    conexao.send_text(mensagem_json), timeout=TIMEOUT_ENVIO_S
+                )
+                for conexao in conexoes
+            ),
             return_exceptions=True,
         )
 
