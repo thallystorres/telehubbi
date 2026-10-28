@@ -6,6 +6,8 @@ Projeto de estudo do Thallys, estudante de TI (UFRN/IMD) e estagiário de backen
 
 Ele vai fazer entrevista entre **28 e 30/10/2026** para a bolsa de **Desenvolvedor de Integração de Plataforma Júnior** do projeto Hubbi Autopeças 2.0 (IMD/UFRN). O projeto envolve autodiagnóstico veicular, IoT e modelos de IA.
 
+**27/10:** aprovado para a etapa de entrevista; dia e horário ainda não definidos.
+
 O objetivo é cobrir lacunas da vaga **e conseguir explicar cada decisão na entrevista**. Entender o código importa mais do que entregar muito código.
 
 Lacunas a cobrir:
