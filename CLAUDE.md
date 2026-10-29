@@ -4,9 +4,9 @@
 
 Projeto de estudo do Thallys, estudante de TI (UFRN/IMD) e estagiário de backend (Python/Django REST Framework, PostgreSQL, Celery, Redis, Docker, GitHub Actions, AWS).
 
-Ele vai fazer entrevista entre **28 e 30/10/2026** para a bolsa de **Desenvolvedor de Integração de Plataforma Júnior** do projeto Hubbi Autopeças 2.0 (IMD/UFRN). O projeto envolve autodiagnóstico veicular, IoT e modelos de IA.
+Ele vai fazer entrevista em **04/11/2026 (quarta), às 12h**, para a bolsa de **Desenvolvedor de Integração de Plataforma Júnior** do projeto Hubbi Autopeças 2.0 (IMD/UFRN). O projeto envolve autodiagnóstico veicular, IoT e modelos de IA.
 
-**27/10:** aprovado para a etapa de entrevista; dia e horário ainda não definidos.
+**27/10:** aprovado para a etapa de entrevista. **29/10:** data e horário confirmados (04/11, 12h).
 
 O objetivo é cobrir lacunas da vaga **e conseguir explicar cada decisão na entrevista**. Entender o código importa mais do que entregar muito código.
 
@@ -332,6 +332,18 @@ Desde 25/10, Thallys escreve todo o código (ver "Quem escreve o código").
 | 4º    | 2    | `GET /telemetria` (cru + agregado), `/falhas`, `/dispositivos`, pytest; carga inicial dos alertas no front | Testes verdes                  |
 | 5º    | 6    | Compose completo (api, db, front), CI, README com diagrama e decisões                               | Projeto apresentável                  |
 | —     | —    | Buffer e ensaio da explicação até a entrevista                                                      | —                                     |
+
+**Calendário de 29/10** (com a data confirmada; a ordem das fases não muda, e o middleware de log volta ao escopo):
+
+| Dia        | Meta                                                                                  |
+| ---------- | ------------------------------------------------------------------------------------- |
+| qui 29/10  | Fase 3: broadcast no POST, CORS + middleware de log, simulador mínimo, perguntas       |
+| sex 30/10  | Fase 4: React camadas 1–2                                                              |
+| sáb 31/10  | Fase 5: WS real, gráfico, alertas → **mínimo aceitável**                               |
+| dom 01/11  | Fase 2: `GET /telemetria` (cru + agregado), `/falhas`, `/dispositivos`, simulador completo |
+| seg 02/11  | Fase 2: pytest, `/health`, carga inicial dos alertas no front                          |
+| ter 03/11  | Fase 6: Compose completo, CI, README; primeiro ensaio                                  |
+| qua 04/11  | Manhã só de ensaio, sem código novo. Entrevista às 12h                                 |
 
 O simulador completo (random walk, `--devices`, `--backfill-horas`) entra junto com a fase 2, porque o backfill só serve para os GETs.
 

@@ -23,4 +23,5 @@ async def criar_leitura(
     )
     sessao.add(leitura)
     await sessao.commit()
+    LeituraOut.model_validate(leitura).model_dump(mode="json")
     return leitura
