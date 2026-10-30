@@ -34,23 +34,23 @@ app.add_middleware(
 @app.middleware("http")
 async def log_middleware(request: Request, call_next) -> Response:
     tempo_inicio = time.perf_counter()
-    method = request.method
-    url = request.url.path
+    metodo = request.method
+    caminho = request.url.path
 
-    response = await call_next(request)
+    resposta = await call_next(request)
     tempo_processamento = (time.perf_counter() - tempo_inicio) * 1000
-    status_code = response.status_code
-    response.headers["X-Tempo-Resposta-Ms"] = f"{tempo_processamento:.2f}"
+    status = resposta.status_code
+    resposta.headers["X-Tempo-Resposta-Ms"] = f"{tempo_processamento:.2f}"
 
     logger.info(
-        "Método: %s | Rota: %s | Status: %s | Tempo: %.2f",
-        method,
-        url,
-        status_code,
+        "Método: %s | Rota: %s | Status: %s | Tempo: %.2fms",
+        metodo,
+        caminho,
+        status,
         tempo_processamento,
     )
 
-    return response
+    return resposta
 
 
 app.include_router(ws.router)
