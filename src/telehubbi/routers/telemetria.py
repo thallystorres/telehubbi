@@ -18,8 +18,8 @@ def montar_mensagem_alerta(falha: Falha, ts: str) -> dict:
 
 async def enviar_mensagens(leitura: dict, alertas: list[dict]) -> None:
     await gerenciador.broadcast({**leitura, "tipo": "leitura"})
-    for falha in alertas:
-        await gerenciador.broadcast(falha)
+    for alerta in alertas:
+        await gerenciador.broadcast(alerta)
 
 
 router = APIRouter(prefix="/telemetria", tags=["telemetria"])
