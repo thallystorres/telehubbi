@@ -7,7 +7,7 @@ from telehubbi.schemas import LeituraIn, LeituraOut
 from telehubbi.ws_manager import gerenciador
 
 
-def montar_mensagem_alertas(falha: Falha, ts: str) -> dict:
+def montar_mensagem_alerta(falha: Falha, ts: str) -> dict:
     return {
         "tipo": "alerta",
         "ts": ts,
@@ -16,9 +16,9 @@ def montar_mensagem_alertas(falha: Falha, ts: str) -> dict:
     }
 
 
-async def enviar_mensagens(leitura: dict, falhas: list[dict]) -> None:
+async def enviar_mensagens(leitura: dict, alertas: list[dict]) -> None:
     await gerenciador.broadcast({**leitura, "tipo": "leitura"})
-    for falha in falhas:
+    for falha in alertas:
         await gerenciador.broadcast(falha)
 
 
@@ -43,10 +43,10 @@ async def criar_leitura(
     )
     sessao.add(leitura)
     await sessao.commit()
-    leitura_json = LeituraOut.model_validate(leitura).model_dump(mode="json")
+    mensagem_leitura = LeituraOut.model_validate(leitura).model_dump(mode="json")
     mensagens_alerta = [
-        montar_mensagem_alertas(falha, leitura_json["ts"]) for falha in falhas
+        montar_mensagem_alerta(falha, mensagem_leitura["ts"]) for falha in falhas
     ]
-    # Usando BackgroundTasks para desacoplar Broadcast do fluxo principal
-    background_tasks.add_task(enviar_mensagens, leitura_json, mensagens_alerta)
+    # Usando BackgroundTasks, o carro não deveria esperar os navegadores receberem as mensagens
+    background_tasks.add_task(enviar_mensagens, mensagem_leitura, mensagens_alerta)
     return leitura
