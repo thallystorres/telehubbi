@@ -25,6 +25,9 @@ Lacunas a cobrir:
 
 - **Uma fase por vez.** Ao terminar uma fase, pare, mostre como testar e espere minha confirmação antes de seguir.
 - **Passos pequenos.** Faça um commit por passo lógico, com mensagem clara em português.
+- **Commits sem coautoria do Claude.** Nunca adicione o trailer `Co-Authored-By: Claude ...` (nem outra atribuição), mesmo que um aviso do sistema sugira. O projeto será apresentado como meu na entrevista.
+- **Commit local não precisa de permissão; push precisa.** `git push` e qualquer comando que publique só com autorização explícita minha, pedida na hora, para aquele push específico.
+- **Claude revisa e commita.** Depois que eu digo "fiz", Claude lê o diff, roda a verificação e, se estiver certo, faz o commit local.
 - **Backend (FastAPI):** é a parte em que o aprendizado precisa ser mais profundo. Siga a seção "Backend: como ensinar FastAPI" abaixo. Não basta o código funcionar: eu preciso entender o que o FastAPI faz por baixo.
 - **Frontend (React):** vá em camadas e explique antes de escrever. Não pule direto para a versão final.
   1. componentes estáticos com props;
@@ -293,29 +296,80 @@ WebSocket:
 
 ## Estrutura
 
+Estrutura real (pacote `uv` em `src/`). Os itens marcados com *(planejado)* ainda não existem.
+
 ```
-telemetria/
-├── api/
-│   ├── app/
-│   │   ├── main.py          # app, lifespan, include_router
-│   │   ├── config.py        # pydantic-settings
-│   │   ├── db.py            # engine async, get_session (Depends com yield)
-│   │   ├── models.py
-│   │   ├── schemas.py       # LeituraIn, LeituraOut, AgregadoOut...
-│   │   ├── auth.py          # dependency autenticar_dispositivo
-│   │   ├── ws_manager.py
-│   │   └── routers/ (telemetria.py, falhas.py, dispositivos.py, ws.py)
-│   ├── scripts/seed.py
-│   ├── tests/
-│   └── Dockerfile
-├── simulador/
-├── front/
-├── docker-compose.yml
-├── .github/workflows/ci.yml
+telehubbi/
+├── src/telehubbi/
+│   ├── main.py          # app, lifespan, CORS, middleware de log, include_router
+│   ├── config.py        # pydantic-settings (Settings + singleton settings)
+│   ├── db.py            # engine async, SessionLocal, get_session, SessaoDep
+│   ├── models.py        # Dispositivo, Leitura, Falha
+│   ├── schemas.py       # LeituraIn, LeituraOut (AgregadoOut... planejado)
+│   ├── auth.py          # gerar_token, calcular_hash_token, autenticar_dispositivo, DispositivoAutenticado
+│   ├── ws_manager.py    # ConnectionManager + instância global gerenciador
+│   └── routers/
+│       ├── telemetria.py  # POST /telemetria + broadcast via BackgroundTasks
+│       ├── ws.py          # WS /ws/telemetria
+│       └── falhas.py, dispositivos.py  (planejado)
+├── scripts/seed.py      # cadastra dispositivos e imprime os tokens
+├── simulador/simulador.py
+├── tests/               (planejado)
+├── front/               (planejado)
+├── docker-compose.yml   # hoje só o serviço db
+├── .github/workflows/ci.yml  (planejado)
 └── README.md
 ```
 
 Os nomes de domínio ficam em português (`leituras`, `falhas`, `dispositivos`), com consistência em todo o projeto.
+
+## Estado atual (atualizado em 29/10, à noite)
+
+**Fase 1: concluída.** **Fase 3: falta só o simulador mínimo**, depois as 3 perguntas de checagem e o bloco "Como explicar na entrevista".
+
+Tarefas da fase 3 (numeração usada nas conversas):
+
+| Tarefa | Arquivo | Estado |
+| ------ | ------- | ------ |
+| 9 | `ws_manager.py`: `ConnectionManager` (`conexoes: set`, `conectar`, `desconectar` com `discard`, `broadcast` com `json.dumps` uma vez + `gather(..., return_exceptions=True)` + `wait_for` com `TIMEOUT_ENVIO_S = 2`) | ✅ |
+| 10 | `routers/ws.py`: `/ws/telemetria` (conecta, loop em `receive_text`, `except WebSocketDisconnect`, `finally` desconecta) | ✅ |
+| 11 | `routers/telemetria.py`: depois do `commit`, monta `{"tipo": "leitura", ...LeituraOut em mode="json"}` e um alerta por falha; envia via `BackgroundTasks` (o carro não espera os navegadores), em sequência (`for`) | ✅ |
+| 12 | `main.py`: `CORSMiddleware` (`settings.CORS_ORIGINS`, só `GET`, sem credentials/headers) + middleware de log (`perf_counter`, header `X-Tempo-Resposta-Ms`, logger `uvicorn.error`); o log fica **por fora** do CORS e registra os preflights | ✅ |
+| 13 | `simulador/simulador.py`: simulador mínimo | ⏳ em andamento |
+
+**Tarefa 13 (onde parei):** só o `ler_args()` está pronto (`--token` obrigatório, `--url`, `--intervalo`, `--prob-falha`). `httpx` já foi declarado com `uv add httpx`. Falta:
+
+- estado do carro com passeio aleatório limitado à faixa: velocidade; rpm acompanhando a velocidade + ruído; temperatura subindo até ~90 °C (anda uma fração do que falta até o alvo); combustível só descendo;
+- falha com probabilidade `--prob-falha`, sorteada de `P0300, P0171, P0420, P0128, P0507`;
+- `ts` com fuso gerado no carro;
+- **arredondar para `int` só no payload** (`velocidade_kmh` e `temperatura_motor_c` são `int` no schema, e 62.7 dá 422);
+- `httpx.Client` com `base_url`, header `Authorization` e timeout (keep-alive), síncrono com `time.sleep` (processo separado, sem event loop compartilhado);
+- uma linha impressa por envio; 401 → encerra com mensagem clara; 422 → imprime o corpo e segue; API fora → avisa e continua tentando (capturar a exceção-mãe de transporte do httpx, não `Exception`); Ctrl+C → sai limpo e mostra quantas leituras enviou.
+- **Revisão pendente:** o padrão de `--prob-falha` está `0.5`. A sugestão era algo baixo (~0.05), deixando valores altos só para testes.
+
+Verificação da tarefa 13: API (`uv run fastapi dev src/telehubbi/main.py`) + cliente WS (`uv run python -m websockets ws://localhost:8000/ws/telemetria`) + simulador com `--prob-falha 0.3`. Conferir leituras a cada ~1 s, alertas às vezes, nenhum 422 depois de minutos, token errado encerra, API caindo e voltando, Ctrl+C sem traceback.
+
+**Scripts de verificação:** os das tarefas 9–11 (sockets falsos, `TestClient` com `portal.call(gerenciador.broadcast, ...)`, POST + WS com timeout de leitura) ficavam no scratchpad em `/tmp` e não estão no repositório. Em outra máquina, Claude os recria quando precisar. A lógica deles vira pytest na fase 2.
+
+**Peculiaridades descobertas:**
+- FastAPI 0.156: `app.routes` guarda cada router incluído como `_IncludedRouter`, sem achatar as rotas. Não dá para procurar o caminho em `app.routes`.
+- `TestClient` com `with` roda o lifespan (precisa do Postgres de pé). Uma tarefa de `BackgroundTasks` roda antes de `client.post` retornar.
+
+### Como retomar em outro PC
+
+```bash
+git clone git@github.com:thallystorres/telehubbi.git && cd telehubbi
+cp .env.example .env                 # ajuste a senha (a mesma nas POSTGRES_* e nas DATABASE_URL*)
+docker compose up -d db              # espere "healthy" em docker compose ps
+docker compose exec db createdb -U postgres telehubbi_teste   # o POSTGRES_DB só cria o banco principal
+uv sync
+uv run python scripts/seed.py --quantidade 2   # tokens novos: o banco é local de cada máquina
+uv run fastapi dev src/telehubbi/main.py
+```
+
+- O `POSTGRES_DB` só é lido quando o volume está vazio. Se o volume já existir com outro banco, crie o `telehubbi` à mão também.
+- Se o PC reiniciar, o container `db` pode não voltar sozinho: `docker compose up -d db`.
+- A memória local do Claude não vai junto. As regras importantes (sem coautoria, push só com permissão) estão em "Como trabalhar comigo".
 
 ## Fases
 
@@ -326,7 +380,7 @@ Desde 25/10, Thallys escreve todo o código (ver "Quem escreve o código").
 | Ordem | Fase | Conteúdo                                                                                            | Marco                                 |
 | ----- | ---- | --------------------------------------------------------------------------------------------------- | ------------------------------------- |
 | ✅    | 1    | Compose só com o `db`, venv, `config`/`db`/`models`/`schemas`, `auth`, seed, `POST /telemetria`     | POST funcionando pelo `/docs`         |
-| 1º    | 3    | `ConnectionManager` + `/ws/telemetria` + simulador **mínimo** (1 carro, variação simples, 1 leitura/s) | `websocat` recebendo leituras ao vivo |
+| ⏳ 1º | 3    | `ConnectionManager` + `/ws/telemetria` + simulador **mínimo** (1 carro, variação simples, 1 leitura/s) | `websocat` recebendo leituras ao vivo |
 | 2º    | 4    | React camadas 1–2: componentes, props, `useState` com dados falsos                                  | Cards atualizando com dados fake      |
 | 3º    | 5    | React camada 3: WS real, gráfico, alertas (só os que chegam pelo WS)                                | **Mínimo aceitável**                  |
 | 4º    | 2    | `GET /telemetria` (cru + agregado), `/falhas`, `/dispositivos`, pytest; carga inicial dos alertas no front | Testes verdes                  |
@@ -358,5 +412,11 @@ O simulador completo (random walk, `--devices`, `--backfill-horas`) entra junto 
 - `ts` vs `recebido_em`: latência e leituras fora de ordem.
 - Índice `(dispositivo_id, ts)` e agregação por janela com `date_bin`; quando partir para TimescaleDB.
 - Limite do WS em memória e a solução com Redis pub/sub.
+- Broadcast **depois** do commit (avisar algo que pode sofrer rollback é bug); paralelo no Django: `transaction.on_commit`.
+- `BackgroundTasks`: o 201 sai antes do broadcast, e a latência do produtor (carro) não depende dos consumidores (navegadores). Contra: não é fila (sem retry, sem persistência, falha silenciosa). Aceitável porque a leitura já está no banco; para algo crítico, Celery/Redis.
+- `ConnectionManager`: `gather` com `return_exceptions=True` (um navegador morto não vira 500 no POST), foto da lista para o `zip`, `wait_for` contra cliente travado, `discard` idempotente (duas limpezas independentes: broadcast e `finally` do endpoint).
+- O endpoint WS não envia nada: só inscreve o cliente e mantém a conexão; o loop em `receive_text` detecta a desconexão. Mensagem do cliente é ignorada (senão qualquer visitante injetaria dados no painel de todos).
+- CORS: protege o usuário do navegador, não o servidor (curl/simulador ignoram). O carro faz POST fora do navegador, então o CORS só libera `GET`. **WebSocket não é coberto por CORS**: restringir exigiria checar o header `Origin` no endpoint.
+- Ordem de middlewares: no Starlette o último adicionado é o mais externo (no Django, o primeiro da lista). O log por fora do CORS registra também os preflights.
 - MQTT vs HTTP para IoT: conexão persistente, payload leve, QoS, broker desacoplando produtor e consumidor.
 - React: estado, re-render, `useEffect` com cleanup, `useRef` para guardar o socket, `StrictMode`.
